@@ -2,8 +2,8 @@
 
 | Campo | Valor |
 |---|---|
-| Versión | 1.1 |
-| Fecha | 2026-11-21 |
+| Versión | 1.2 |
+| Fecha | 2026-11-22 |
 | Estado | En desarrollo (MVP funcional) |
 | Componentes | API .NET · Panel admin · Portal estudiante |
 
@@ -24,12 +24,12 @@ buena calidad en cualquier dispositivo.
 ## 3. No objetivos (por ahora)
 - Pagos, suscripciones o marketplace.
 - Certificados, evaluaciones o foros.
-- Transcodificación multi-bitrate (ABR) y DRM.
+- DRM y subtítulos.
 - Aplicaciones móviles nativas.
 
 ## 4. Usuarios (personas)
 - **Instructor (admin)** — crea cursos, sube lecciones, decide qué se publica. Se autentica.
-- **Estudiante (visitante)** — busca y ve cursos publicados. Hoy no requiere cuenta.
+- **Estudiante** — busca y ve cursos publicados sin cuenta; con cuenta (gratuita) conserva su progreso en el servidor.
 
 ## 5. Alcance funcional
 
@@ -52,7 +52,9 @@ buena calidad en cualquier dispositivo.
 | F-P2 | Búsqueda por palabras (título/descripción) con debounce | Must |
 | F-P3 | Página de curso con reproductor HLS y lista de lecciones | Must |
 | F-P4 | Avance automático a la siguiente lección y navegación anterior/siguiente | Should |
-| F-P5 | Progreso de lecciones vistas (local al navegador) | Could |
+| F-P5 | Progreso de lecciones (servidor con cuenta, local sin cuenta) y reanudación | Should |
+| F-P6 | Registro e inicio de sesión de estudiantes | Should |
+| F-P7 | Reproducción adaptativa (360p/720p/1080p), miniaturas y duración | Should |
 
 ### 5.3 Plataforma
 | ID | Funcionalidad | Prioridad |
@@ -62,6 +64,11 @@ buena calidad en cualquier dispositivo.
 | F-S3 | Endpoints de gestión protegidos con JWT | Must |
 | F-S4 | Migraciones automáticas y usuario instructor semilla al arrancar | Should |
 | F-S5 | Despliegue con Docker Compose | Must |
+| F-S6 | Roles Instructor/Student y propiedad de recursos desde el JWT | Must |
+| F-S7 | Cola de procesamiento recuperable y reintento manual | Must |
+| F-S8 | Almacenamiento de objetos S3 compatible + CDN | Should |
+| F-S9 | HTTPS automático (Caddy), rate limiting, límites por endpoint, CORS restringido | Must |
+| F-S10 | Pruebas de integración, E2E y CI | Should |
 
 ## 6. Requisitos no funcionales
 - **Seguridad**: JWT obligatorio en endpoints de gestión; secretos por variables de entorno; sin credenciales en el código.
@@ -78,13 +85,13 @@ buena calidad en cualquier dispositivo.
 ## 8. Riesgos
 | Riesgo | Impacto | Mitigación |
 |---|---|---|
-| Cola en memoria se pierde al reiniciar | Videos quedan en `Uploading` | Re-encolar pendientes al iniciar / cola persistente |
-| El `userId` llega desde el cliente | Un usuario autenticado podría operar sobre recursos ajenos si conoce el id | Tomar el `userId` del claim del JWT |
-| Videos grandes saturan disco | Caída del servicio | Cuotas, limpieza del archivo original tras HLS, almacenamiento de objetos |
-| Un solo bitrate | Mala experiencia en redes lentas | HLS multi-bitrate |
+| Una sola instancia de la API procesa la cola | Escalado horizontal limitado | La BD ya es la fuente de verdad; siguiente paso: cola distribuida (RabbitMQ/Azure Queue) y workers separados |
+| FFmpeg consume CPU en la misma máquina que la API | Latencia de la API durante el procesamiento | Mover el worker a un contenedor propio |
+| Disco local en modo Local | Saturación | Modo S3 + CDN; el original se elimina tras generar HLS |
+| JWT en localStorage | Robo de token ante XSS | CSP estricta / cookies HttpOnly + refresh tokens |
 
 ## 9. Hitos
 1. **MVP** (hecho): CRUD, subida, HLS, portal con búsqueda.
-2. **v1.1** (este cambio): rediseño Aurora Glass, dashboard, progreso de subida, auto-refresco, Docker.
-3. **v1.2** (propuesto): seguridad por claims, cola persistente, limpieza de archivos, roles.
-4. **v2**: cuentas de estudiante, progreso en servidor, ABR, CDN.
+2. **v1.1** (hecho): rediseño Aurora Glass, dashboard, progreso de subida, auto-refresco, Docker.
+3. **v1.2** (hecho): roles y propiedad por JWT, cola recuperable, limpieza, HLS adaptativo + miniaturas, estadísticas, cuentas de estudiante, workspace con librería compartida, S3/CDN, endurecimiento de producción, pruebas y CI.
+4. **v2**: worker de procesamiento separado, refresh tokens, subtítulos, certificados, analítica de visualización.

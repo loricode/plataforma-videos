@@ -153,13 +153,13 @@ Escenario: Ver
   Y el botón está deshabilitado si la lección no está lista
 ```
 
-### HU-12 · Eliminar lección 🟡
+### HU-12 · Eliminar lección ✅
 **Como** instructor **quiero** eliminar una lección **para** corregir errores.
 ```gherkin
 Escenario: Eliminar
   Cuando confirmo la eliminación
   Entonces la lección desaparece del panel y del portal
-  # Pendiente: borrar también los archivos HLS del disco
+  Y se eliminan sus archivos HLS y miniatura (disco local o bucket S3)
 ```
 
 ---
@@ -197,13 +197,13 @@ Escenario: Curso sin lecciones listas
   Entonces veo "Lecciones en preparación"
 ```
 
-### HU-16 · Recordar mi progreso 🟡
+### HU-16 · Recordar mi progreso ✅
 **Como** estudiante **quiero** ver qué lecciones ya vi **para** continuar donde quedé.
 ```gherkin
 Escenario: Progreso local
   Cuando termino una lección
   Entonces queda marcada como vista y la barra de progreso del curso avanza
-  # Pendiente: progreso por cuenta en el servidor (requiere HU de registro de estudiante)
+  Y si tengo cuenta, el progreso se guarda en el servidor y reanudo en el segundo donde quedé
 ```
 
 ---
@@ -220,7 +220,7 @@ Escenario: Arranque limpio
   Y la base de datos se migra sola y se crea el instructor semilla
 ```
 
-### HU-18 · Seguridad por identidad ⬜
+### HU-18 · Seguridad por identidad ✅
 **Como** instructor **quiero** que nadie más pueda modificar mis cursos **para** proteger mi contenido.
 ```gherkin
 Escenario: Propiedad desde el token
@@ -228,3 +228,60 @@ Escenario: Propiedad desde el token
   Cuando creo, edito o elimino un curso
   Entonces la API usa mi id del token y no un id enviado por el cliente
 ```
+
+---
+
+## Épica 6 — Cuentas de estudiante y calidad de video (v1.2)
+
+### HU-19 · Crear cuenta de estudiante ✅
+**Como** estudiante **quiero** registrarme **para** conservar mi progreso en todos mis dispositivos.
+```gherkin
+Escenario: Registro
+  Dado que estoy en "Crear cuenta"
+  Cuando ingreso nombre, correo y una contraseña con 8+ caracteres, mayúscula, número y símbolo
+  Entonces se crea mi cuenta, inicio sesión automáticamente y vuelvo a la página donde estaba
+
+Escenario: Requisitos visibles
+  Mientras escribo la contraseña
+  Entonces cada requisito se marca con ✓ o ✗ y su texto
+
+Escenario: Estudiante en el panel
+  Cuando intento ingresar al panel de instructores con mi cuenta
+  Entonces veo "Esta cuenta no tiene acceso al panel de instructores."
+```
+
+### HU-20 · Continuar donde lo dejé ✅
+**Como** estudiante con cuenta **quiero** reanudar la lección en el segundo exacto **para** no buscar dónde quedé.
+```gherkin
+Escenario: Reanudar
+  Dado que vi 3 minutos de una lección y cerré la pestaña
+  Cuando vuelvo al curso desde otro dispositivo
+  Entonces se abre la primera lección no completada en el minuto 3
+```
+
+### HU-21 · Calidad adaptativa ✅
+**Como** estudiante **quiero** que el video se adapte a mi conexión **para** verlo sin cortes.
+```gherkin
+Escenario: Red lenta
+  Dado un video subido en 1080p
+  Cuando mi ancho de banda baja
+  Entonces el reproductor cambia a 720p o 360p y muestra la calidad activa
+```
+
+### HU-22 · Miniaturas y duración ✅
+**Como** instructor y estudiante **quiero** ver una miniatura y la duración de cada lección **para** identificarla rápido.
+
+### HU-23 · Reintentar lección con error ✅
+**Como** instructor **quiero** reintentar el procesamiento de una lección fallida **para** no volver a subirla.
+```gherkin
+Escenario: Reintento
+  Dada una lección en estado "Error"
+  Cuando presiono "Reintentar"
+  Entonces vuelve a "En cola" y se procesa de nuevo
+```
+
+### HU-24 · Procesamiento resistente a reinicios ✅
+**Como** responsable técnico **quiero** que los videos pendientes se reprocesen tras reiniciar la API **para** no perder subidas.
+
+### HU-25 · Producción segura ✅
+**Como** responsable técnico **quiero** HTTPS automático, límites de tamaño, rate limiting y medios en un bucket/CDN **para** operar en Internet con seguridad.
