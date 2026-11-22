@@ -14,8 +14,8 @@ services:
       RUSTFS_CONSOLE_ENABLE: "true"
       RUSTFS_CORS_ALLOWED_ORIGINS: "*"
     ports:
-      - "${MINIO_PORT:-9000}:9000"
-      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+      - "${MINIO_PORT:-9100}:9000"
+      - "${MINIO_CONSOLE_PORT:-9101}:9001"
     volumes:
       - miniodata:/data
     restart: unless-stopped
@@ -30,7 +30,7 @@ services:
       ObjectStorage__AccessKey: ${MINIO_ROOT_USER:-minioadmin}
       ObjectStorage__SecretKey: ${MINIO_ROOT_PASSWORD:-minioadmin123}
       ObjectStorage__Bucket: ${OBJECT_STORAGE_BUCKET:-videos}
-      ObjectStorage__PublicBaseUrl: ${OBJECT_STORAGE_PUBLIC_URL:-http://localhost:9000/videos}
+      ObjectStorage__PublicBaseUrl: ${OBJECT_STORAGE_PUBLIC_URL:-http://localhost:9100/videos}
       ObjectStorage__EnsureBucket: "true"
 
 volumes:
