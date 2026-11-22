@@ -1,0 +1,39 @@
+# Producción: Caddy como proxy inverso con HTTPS automático (Let's Encrypt).
+# Requisitos: DNS de PORTAL_DOMAIN y ADMIN_DOMAIN apuntando al servidor, puertos 80/443 abiertos.
+# Uso: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: sv-caddy
+    depends_on:
+      - portal
+      - admin
+    environment:
+      PORTAL_DOMAIN: ${PORTAL_DOMAIN:?Define PORTAL_DOMAIN en .env}
+      ADMIN_DOMAIN: ${ADMIN_DOMAIN:?Define ADMIN_DOMAIN en .env}
+      ACME_EMAIL: ${ACME_EMAIL:-}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    restart: unless-stopped
+
+  # Solo Caddy queda expuesto a Internet
+  portal:
+    ports: !reset []
+  admin:
+    ports: !reset []
+  api:
+    ports: !reset []
+    environment:
+      Swagger__Enabled: "false"
+  db:
+    ports: !reset []
+
+volumes:
+  caddy_data:
+  caddy_config:

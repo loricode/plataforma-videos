@@ -1,0 +1,21 @@
+{
+	email {$ACME_EMAIL}
+}
+
+(security) {
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		-Server
+	}
+	encode zstd gzip
+}
+
+{$PORTAL_DOMAIN} {
+	import security
+	reverse_proxy portal:80
+}
+
+{$ADMIN_DOMAIN} {
+	import security
+	reverse_proxy admin:80
+}

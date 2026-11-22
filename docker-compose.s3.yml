@@ -1,0 +1,37 @@
+# Almacenamiento de objetos S3 compatible.
+# Localmente usa RustFS (servidor compatible con la API de S3/MinIO; la imagen oficial de MinIO
+# dejó de publicarse en Docker Hub). En producción usa AWS S3, Cloudflare R2, DigitalOcean Spaces,
+# Backblaze B2, etc., y apunta OBJECT_STORAGE_PUBLIC_URL a tu CDN.
+#
+# Uso: docker compose -f docker-compose.yml -f docker-compose.s3.yml up -d --build
+services:
+  minio:
+    image: rustfs/rustfs:latest
+    container_name: sv-s3
+    environment:
+      RUSTFS_ACCESS_KEY: ${MINIO_ROOT_USER:-minioadmin}
+      RUSTFS_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin123}
+      RUSTFS_CONSOLE_ENABLE: "true"
+      RUSTFS_CORS_ALLOWED_ORIGINS: "*"
+    ports:
+      - "${MINIO_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - miniodata:/data
+    restart: unless-stopped
+
+  api:
+    depends_on:
+      - db
+      - minio
+    environment:
+      ObjectStorage__Provider: S3
+      ObjectStorage__ServiceUrl: http://minio:9000
+      ObjectStorage__AccessKey: ${MINIO_ROOT_USER:-minioadmin}
+      ObjectStorage__SecretKey: ${MINIO_ROOT_PASSWORD:-minioadmin123}
+      ObjectStorage__Bucket: ${OBJECT_STORAGE_BUCKET:-videos}
+      ObjectStorage__PublicBaseUrl: ${OBJECT_STORAGE_PUBLIC_URL:-http://localhost:9000/videos}
+      ObjectStorage__EnsureBucket: "true"
+
+volumes:
+  miniodata:

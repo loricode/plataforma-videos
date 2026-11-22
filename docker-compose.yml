@@ -1,0 +1,68 @@
+name: solutionvideos
+
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sv-db
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+      MSSQL_PID: Developer
+    ports:
+      - "${DB_PORT:-14333}:1433"
+    volumes:
+      - sqldata:/var/opt/mssql
+    restart: unless-stopped
+
+  api:
+    build: ./Backend/Core
+    image: solutionvideos/api:latest
+    container_name: sv-api
+    depends_on:
+      - db
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      DisableHttpsRedirection: "true"
+      ConnectionStrings__DefaultConnection: "Server=db,1433;Database=videosdb;User Id=sa;Password=${MSSQL_SA_PASSWORD};Encrypt=False;TrustServerCertificate=True;MultipleActiveResultSets=False"
+      Jwt__Key: ${JWT_KEY}
+      Jwt__Issuer: APIEDUCA
+      Jwt__Audience: ApiCore
+      Seed__AdminEmail: ${ADMIN_EMAIL:-}
+      Seed__AdminPassword: ${ADMIN_PASSWORD:-}
+      Seed__AdminName: ${ADMIN_NAME:-Administrador}
+      DataProtection__KeysPath: /data/keys
+      RateLimit__AuthPermitPerMinute: ${AUTH_RATE_LIMIT:-10}
+      Swagger__Enabled: ${SWAGGER_ENABLED:-true}
+    ports:
+      - "${API_PORT:-5000}:8080"
+    volumes:
+      - media:/data
+    restart: unless-stopped
+
+  portal:
+    build:
+      context: ./Frontend
+      dockerfile: portal-usuario/Dockerfile
+    image: solutionvideos/portal:latest
+    container_name: sv-portal
+    depends_on:
+      - api
+    ports:
+      - "${PORTAL_PORT:-8200}:80"
+    restart: unless-stopped
+
+  admin:
+    build:
+      context: ./Frontend
+      dockerfile: portal-admin/Dockerfile
+    image: solutionvideos/admin:latest
+    container_name: sv-admin
+    depends_on:
+      - api
+    ports:
+      - "${ADMIN_PORT:-8300}:80"
+    restart: unless-stopped
+
+volumes:
+  sqldata:
+  media:

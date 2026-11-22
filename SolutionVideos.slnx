@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/Backend/" />
+  <Folder Name="/Backend/Core/">
+    <Project Path="Backend/Core/ApplicationCore/ApplicationCore.csproj" Id="89e1d13a-5ef9-494e-92d4-512ec68bff99" />
+    <Project Path="Backend/Core/DomainCore/DomainCore.csproj" Id="26469de3-b7e0-4839-b389-98de0fb53e76" />
+    <Project Path="Backend/Core/InfrastructureCore/InfrastructureCore.csproj" Id="8eee2afb-9ea8-46fd-8b77-84efe7dba946" />
+    <Project Path="Backend/Core/WebApiCore/WebApiCore.csproj" Id="fc2d07b5-460e-4971-9870-31b7600faaf2" />
+  </Folder>
+  <Folder Name="/Backend/Tests/">
+    <Project Path="Backend/Tests/WebApiCore.Tests/WebApiCore.Tests.csproj" />
+  </Folder>
+</Solution>
